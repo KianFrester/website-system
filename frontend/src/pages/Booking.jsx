@@ -7,7 +7,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../styles/datepicker-custom.css";
 import { UserAuth } from "../context/AuthContext";
 
-
 const Booking = () => {
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -68,7 +67,7 @@ const Booking = () => {
       .from("booking")
       .select("checkIn, checkOut")
       .eq("roomId", roomId)
-      .neq("status", "cancelled"); 
+      .neq("status", "cancelled");
 
     if (error) {
       console.error("Error fetching bookings:", error);
@@ -126,6 +125,7 @@ const Booking = () => {
       roomId: selectedRoom.id,
       roomName: selectedRoom.name,
       totalCost: selectedRoom.cost,
+      downpayment: selectedRoom.cost * 0.5,
       status: "pending",
       paymentProofUrl: fileUrlData.publicUrl,
     };
@@ -152,6 +152,21 @@ const Booking = () => {
     }
   };
 
+  const [footer, setFooter] = useState("");
+
+  useEffect(() => {
+    fetchFooter();
+  }, []);
+
+  const fetchFooter = async () => {
+    try {
+      const { data } = await supabase.from("footer").select("*").single();
+      setFooter(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getDayClassName = (date) => {
     const isBooked = unavailableDates.some(
       (d) =>
@@ -163,68 +178,83 @@ const Booking = () => {
   };
 
   return (
-    <div className="bg-gray-700 text-white">
+    <div className="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
       <Navbar />
-      <div className="bg-gradient-to-b from-black/90 via-orange-1100/90 to-yellow-700/90 py-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center mb-2">
+      <main className="flex-grow bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-12 px-6 sm:px-12 lg:px-20">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-5xl font-extrabold text-center mb-4 tracking-tight text-green-400">
             Book Your Stay
           </h1>
-          <h2 className="text-gray-300 text-center mb-8 text-lg">
-            Hello, {session?.user?.email}
+          <h2 className="text-center text-gray-400 mb-10 text-lg font-medium">
+            Hello,{" "}
+            <span className="text-green-400">{session?.user?.email}</span>
           </h2>
-          <p className="text-gray-300 text-center mb-8">
-            Select your room and provide your details
+          <p className="text-center text-gray-400 mb-12 text-base max-w-xl mx-auto">
+            Select your room and provide your details below to secure your
+            booking.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Available Rooms</h2>
-              <div className="grid gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Rooms List */}
+            <section className="space-y-6">
+              <h2 className="text-3xl font-semibold mb-6 text-green-300 border-b border-green-600 pb-2">
+                Available Rooms
+              </h2>
+              <div className="grid gap-5">
                 {rooms.map((room) => (
                   <div
                     key={room.id}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                    className={`flex justify-between cursor-pointer rounded-lg p-5 border transition-shadow duration-300 ${
                       selectedRoom?.id === room.id
-                        ? "bg-white/25 border-white/40"
-                        : "bg-white/5 border-white/20 hover:bg-white/20"
+                        ? "bg-green-900 border-green-500 shadow-lg"
+                        : "bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-green-400"
                     }`}
                     onClick={() => setSelectedRoom(room)}
                   >
-                    <div className="flex gap-4">
+                    <div className="flex">
                       <img
                         src={room.image}
                         alt={room.name}
-                        className="w-32 h-24 object-cover rounded-lg"
+                        className="w-36 h-28 object-cover rounded-md shadow-md flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-1">
-                          {room.name}
-                        </h3>
-                        <p className="text-sm text-gray-300 mb-2 line-clamp-2">
-                          {room.about}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <div className="text-sm text-gray-300">
-                            {room.size} sqm • {room.occupancy} guests
-                          </div>
-                          <div className="font-bold text-red-500">
-                            ₱{room.cost}
-                          </div>
+                      <div className="ml-5 flex flex-col justify-between">
+                        <div>
+                          <h3 className="text-2xl font-semibold text-green-300">
+                            {room.name}
+                          </h3>
+                          <p className="text-gray-400 mt-1 text-sm line-clamp-2 max-w-md">
+                            {room.about}
+                          </p>
+                        </div>
+                        <div className="mt-3 text-gray-400 text-sm font-medium">
+                          {room.size} sqm • {room.occupancy} guests
                         </div>
                       </div>
+                    </div>
+
+                    <div className="flex items-center pl-6">
+                      <span className="text-green-400 font-bold text-xl whitespace-nowrap">
+                        ₱{room.cost}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="bg-white/5 rounded-xl border border-white/20 p-6">
-              <h2 className="text-2xl font-semibold mb-6">Booking Details</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label htmlFor="firstName" className="text-white text-sm">
+            {/* Booking Form */}
+            <section className="bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-700">
+              <h2 className="text-3xl font-semibold mb-8 text-green-300 border-b border-green-600 pb-3">
+                Booking Details
+              </h2>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      htmlFor="firstName"
+                      className="block mb-2 text-sm font-medium text-gray-300"
+                    >
                       First Name
                     </label>
                     <input
@@ -235,11 +265,14 @@ const Booking = () => {
                       value={formData.firstName}
                       onChange={handleInputChange}
                       required
-                      className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white w-full"
+                      className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label htmlFor="lastName" className="text-white text-sm">
+                  <div>
+                    <label
+                      htmlFor="lastName"
+                      className="block mb-2 text-sm font-medium text-gray-300"
+                    >
                       Last Name
                     </label>
                     <input
@@ -250,13 +283,16 @@ const Booking = () => {
                       value={formData.lastName}
                       onChange={handleInputChange}
                       required
-                      className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white w-full"
+                      className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label htmlFor="email" className="text-white text-sm">
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block mb-2 text-sm font-medium text-gray-300"
+                  >
                     Email
                   </label>
                   <input
@@ -265,12 +301,15 @@ const Booking = () => {
                     type="email"
                     value={formData.email}
                     readOnly
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                    className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 cursor-not-allowed"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label htmlFor="phone" className="text-white text-sm">
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block mb-2 text-sm font-medium text-gray-300"
+                  >
                     Phone
                   </label>
                   <input
@@ -281,13 +320,16 @@ const Booking = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     required
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                    className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label htmlFor="checkIn" className="text-white text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      htmlFor="checkIn"
+                      className="block mb-2 text-sm font-medium text-gray-300"
+                    >
                       Check-In
                     </label>
                     <DatePicker
@@ -299,11 +341,14 @@ const Booking = () => {
                       minDate={new Date()}
                       excludeDates={unavailableDates}
                       dayClassName={getDayClassName}
-                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                      className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label htmlFor="checkOut" className="text-white text-sm">
+                  <div>
+                    <label
+                      htmlFor="checkOut"
+                      className="block mb-2 text-sm font-medium text-gray-300"
+                    >
                       Check-Out
                     </label>
                     <DatePicker
@@ -315,95 +360,114 @@ const Booking = () => {
                       minDate={formData.checkIn}
                       excludeDates={unavailableDates}
                       dayClassName={getDayClassName}
-                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                      className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label htmlFor="guests" className="text-white text-sm">
+                <div>
+                  <label
+                    htmlFor="guests"
+                    className="block mb-2 text-sm font-medium text-gray-300"
+                  >
                     Number of Guests
                   </label>
                   <input
                     id="guests"
                     name="guests"
                     type="number"
-                    placeholder="2"
+                    min={1}
                     value={formData.guests}
                     onChange={handleInputChange}
-                    min="1"
-                    max={selectedRoom?.occupancy}
                     required
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                    className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div>
                   <label
                     htmlFor="specialRequests"
-                    className="text-white text-sm"
+                    className="block mb-2 text-sm font-medium text-gray-300"
                   >
-                    Special Requests
+                    Special Requests (Optional)
                   </label>
                   <textarea
                     id="specialRequests"
                     name="specialRequests"
-                    placeholder="Extra pillows, extra blankets, etc."
+                    rows={3}
+                    placeholder="Any preferences or needs?"
                     value={formData.specialRequests}
                     onChange={handleInputChange}
-                    rows="3"
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                    className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition resize-none"
                   />
                 </div>
 
-                {selectedRoom && (
-                  <>
-                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                      <p>
-                        Selected Room: <strong>{selectedRoom.name}</strong>
-                      </p>
-                      <p>
-                        Total Cost: <strong>₱{selectedRoom.cost}</strong>
-                      </p>
-                      <p>
-                        50% Downpayment:{" "}
-                        <strong>₱{(selectedRoom.cost * 0.5).toFixed(2)}</strong>
-                      </p>
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                      <p className="text-center mb-2">Send GCash Payment to:</p>
-                      <img
-                        src="/src/assets/Freddiemaximo.jpg"
-                        alt="GCash QR Code"
-                        className="w-40 h-40 object-contain mx-auto"
-                      />
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                      <label className="block mb-2 text-sm font-medium text-gray-300">
-                        Upload GCash Down Payment Proof
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={handleFileChange}
-                        required
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white file:bg-white/10 file:text-white file:border-none file:rounded file:px-3 file:py-1"
-                      />
-                    </div>
-                  </>
+                {selectedRoom ? (
+                  <div className="mb-6 bg-gray-900 p-4 rounded-md border border-green-600 text-green-300">
+                    <h3 className="text-xl font-semibold mb-2">
+                      Selected Room
+                    </h3>
+                    <p>
+                      <strong>Name:</strong> {selectedRoom.name}
+                    </p>
+                    <p>
+                      <strong>Total Cost:</strong> ₱
+                      {selectedRoom.cost.toFixed(2)}
+                    </p>
+                    <p>
+                      <strong>Downpayment (50%):</strong> ₱
+                      {(selectedRoom.cost * 0.5).toFixed(2)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mb-6 text-gray-400 italic">
+                    Please select a room.
+                  </p>
                 )}
+
+                <div className="mb-6">
+                  <h3 className="text-green-400 font-semibold mb-2 text-lg">
+                    GCash Payment Instructions
+                  </h3>
+                  <p className="mb-2 text-gray-400 text-sm">
+                    Please send a 50% downpayment to the following GCash number:
+                  </p>
+                  <p className="text-green-300 font-bold text-xl mb-2">
+                    {footer.phone}
+                  </p>
+                  <p className="text-gray-400 text-sm mb-2">
+                    Use your full name as the payment reference.
+                  </p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    After payment, upload your payment proof below.
+                  </p>
+
+                  <input
+                    id="paymentProof"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    required
+                    className="w-full bg-gray-900 border border-gray-600 rounded-md px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
+                  />
+                </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-colors duration-200"
+                  disabled={!selectedRoom}
+                  className={`w-full ${
+                    selectedRoom
+                      ? "bg-green-500 hover:bg-green-600"
+                      : "bg-green-900 cursor-not-allowed"
+                  } text-gray-900 font-semibold py-3 rounded-md shadow-lg transition-colors`}
                 >
                   Book Now
                 </button>
               </form>
-            </div>
+            </section>
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );

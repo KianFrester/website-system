@@ -97,7 +97,7 @@ const Footer = () => {
       </div>
 
       <div className="text-center border-t border-gray-700 pt-4 text-gray-400">
-        <p>© {date} Elpise Inn Hostel. All rights reserved.</p>
+        <p>© {date} Hotel Booking System. All rights reserved.</p>
       </div>
     </footer>
   );

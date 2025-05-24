@@ -23,10 +23,10 @@ const Home = () => {
 
       {/* Main Section */}
       <div
-        className="h-[85vh] bg-cover bg-top flex items-center justify-center text-center px-4 relative"
+        className="h-[90vh] bg-cover bg-top flex items-center justify-center text-center px-4 relative"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/src/assets/picture2.jpg')",
+            "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/src/assets/bgpic.jpg')",
         }}
       >
         <div className="max-w-3xl z-10">
@@ -57,7 +57,7 @@ const Home = () => {
       </div>
 
       {/* About Section */}
-      <div className="py-20 px-6 md:px-20 bg-gradient-to-b from-black/90 via-orange-900/90 to-yellow-700/90">
+      <div className="py-20 px-6 md:px-20 bg-gradient-to-b from-black/90 via-blue-900/90 to-yellow-700/90">
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center relative z-10">
           <div>
             <img

@@ -38,7 +38,7 @@ const Inbox = () => {
       setMessages((prevMessages) =>
         prevMessages.filter((msg) => msg.id !== id)
       );
-      setSelectedMessage(null); 
+      setSelectedMessage(null);
     }
   };
 
@@ -52,61 +52,54 @@ const Inbox = () => {
 
   return (
     <>
-      <div className="bg-gray-700 text-white min-h-screen isolate">
+       <div className="min-h-screen bg-gradient-to-b from-black via-orange-900 to-yellow-900">
         <Navbar />
-        <div className="bg-black text-white min-h-screen">
-          <div className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-4xl font-semibold text-center mb-6">
-              Admin Inbox
-            </h1>
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <h1 className="text-4xl font-bold text-center text-white mb-6">Admin Inbox</h1>
+          <div className="text-center text-lg text-gray-200 mb-8">
+            Welcome <span className="font-semibold">{session?.user?.email}</span>, here are your messages.
+          </div>
 
-            <div className="flex justify-center my-4 text-lg">
-              <h2 className="text-gray-300 text-center">
-                Welcome {session?.user?.email}, This is your messages box!
-              </h2>
-            </div>
-
-            <div className="space-y-6">
-              {messages.length === 0 ? (
-                <div className="text-center text-lg text-gray-400">
-                  No new messages
-                </div>
-              ) : (
-                messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    onClick={() => handleCardClick(msg)}
-                    className="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl shadow-lg hover:shadow-2xl transition cursor-pointer p-6"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-semibold text-xl">{msg.name}</h3>
-                        <p className="text-sm text-gray-300">
-                          <strong>Email:</strong> {msg.email}
-                        </p>
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        {new Date(msg.created_at).toLocaleString()}
-                      </div>
+          <div className="space-y-6">
+            {messages.length === 0 ? (
+              <div className="text-center text-lg text-gray-300">
+                No new messages
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  onClick={() => handleCardClick(msg)}
+                  className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6 shadow-lg hover:shadow-2xl transition cursor-pointer"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-semibold">{msg.name}</h3>
+                      <p className="text-sm text-gray-300 mt-1">
+                        <strong>Email:</strong> {msg.email}
+                      </p>
                     </div>
-                    <div className="mt-4 text-base text-gray-200 line-clamp-2">
-                      <strong>Message:</strong> {msg.message}
-                    </div>
-                    <div className="mt-4 flex justify-end space-x-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          deleteMessage(msg.id);
-                        }}
-                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg"
-                      >
-                        Delete
-                      </button>
+                    <div className="text-sm text-gray-400 text-right">
+                      {new Date(msg.created_at).toLocaleString()}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                  <p className="mt-4 text-gray-200 line-clamp-2">
+                    <strong>Message:</strong> {msg.message}
+                  </p>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteMessage(msg.id);
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white py-1.5 px-4 rounded-lg text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
