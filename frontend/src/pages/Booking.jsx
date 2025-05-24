@@ -6,7 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/datepicker-custom.css";
 import { UserAuth } from "../context/AuthContext";
-import { FaWallet } from "react-icons/fa";
+
 
 const Booking = () => {
   const [rooms, setRooms] = useState([]);
@@ -68,7 +68,7 @@ const Booking = () => {
       .from("booking")
       .select("checkIn, checkOut")
       .eq("roomId", roomId)
-      .neq("status", "cancelled"); // EXCLUDE cancelled bookings
+      .neq("status", "cancelled"); 
 
     if (error) {
       console.error("Error fetching bookings:", error);

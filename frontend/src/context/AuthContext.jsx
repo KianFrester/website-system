@@ -81,20 +81,57 @@ export const AuthContextProvider = ({ children }) => {
       setSession(sessionToUse);
 
       if (sessionToUse?.user) {
-        const { data, error } = await supabase
+        const user = sessionToUse.user;
+
+        // Step 1: Try to fetch user (allow multiple or none to avoid 406)
+        let { data: userData, error: fetchError } = await supabase
           .from("users")
           .select("role")
-          .eq("id", sessionToUse.user.id);
+          .eq("id", user.id);
 
-        if (error || !data || data.length === 0 || !data[0]?.role) {
-          console.error("Error fetching role:", error);
+        if (fetchError) {
+          console.error("Error fetching role:", fetchError.message);
           setRoles([]);
+          return;
+        }
+
+        if (!userData || userData.length === 0) {
+          // Step 2: Insert user if not found
+          const { error: insertError } = await supabase.from("users").insert({
+            id: user.id,
+            email: user.email,
+            role: "user",
+          });
+
+          if (insertError) {
+            console.error("Error inserting new user:", insertError.message);
+            setRoles([]);
+            return;
+          }
+
+          // Step 3: Re-fetch single row after insert
+          const { data: newUserData, error: newFetchError } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+          if (newFetchError) {
+            console.error(
+              "Error fetching inserted user:",
+              newFetchError.message
+            );
+            setRoles([]);
+            return;
+          }
+
+          const role = newUserData?.role?.toLowerCase() || "user";
+          setRoles([role]);
         } else {
-          const role = data[0].role.toLowerCase();
+          // User exists; get role
+          const role = userData[0].role?.toLowerCase() || "user";
           setRoles([role]);
         }
-      } else {
-        setRoles([]);
       }
 
       if (!hasInitialized) {
@@ -113,7 +150,7 @@ export const AuthContextProvider = ({ children }) => {
     );
 
     return () => {
-      listener?.subscription?.unsubscribe();
+      listener?.subscription.unsubscribe();
     };
   }, []);
 
@@ -174,6 +211,24 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
+  //sign up
+  const signUpWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/booking",
+        },
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error("Error signing in with Google:", error.message);
+      return { success: false, error };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -184,6 +239,7 @@ export const AuthContextProvider = ({ children }) => {
         roles,
         loading,
         signInWithGoogle,
+        signUpWithGoogle,
       }}
     >
       {children}

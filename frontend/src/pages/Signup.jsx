@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 import { FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import LoadingScreen from "../components/LoadingScreen";
+import { supabase } from "../api/CreateClient";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -30,6 +31,27 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
+
+   const signUpWithGoogle = async () => {
+    setLoading(true);
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/", 
+      },
+    });
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error signing in with Google:", error.message);
+    return { success: false, error };
+  }
+};
+
 
   return (
     <>
@@ -149,7 +171,9 @@ const Signup = () => {
             </div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] cursor-pointer">
+          <button 
+          onClick={signUpWithGoogle}
+          className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] cursor-pointer">
             <FaGoogle className="text-red-500" />
             Signup with Google
           </button>
