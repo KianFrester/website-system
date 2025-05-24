@@ -1,0 +1,11 @@
+.booked-date {
+  background-color: #dc2626 !important; 
+  color: white !important;
+  border-radius: 0.5rem;
+}
+
+.available-date {
+  background-color: #16a34a !important; 
+  color: white !important;
+  border-radius: 0.5rem;
+}
